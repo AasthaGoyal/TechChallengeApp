@@ -31,3 +31,11 @@ Information about the assessment is available in the [assessment.md file](ASSESS
 ## Found an issue?
 
 If you've found an issue with the application, the documentation, or anything else, we are happy to take contributions. Please raise an issue in the [github repository](https://github.com/Servian/TechChallengeApp/issues) and read through the contribution rules found the [CONTRIBUTING.md](CONTRIBUTING.md) file for the details.
+
+## Deployement Steps - Tech Challenge 
+
+1. Create a EC2 instance 
+
+ aws cloudformation create-stack --stack-name basic-web-server --template-body file://template.yaml --parameters ParameterKey=InstanceType,ParameterValue=t2.micro ParameterKey=KeyName,ParameterValue=tech-aws ParameterKey=SubnetId1,ParameterValue=subnet-97243fde ParameterKey=VpcId,ParameterValue=vpc-2bb1b74c --tags Key=Name,Value="WebServer"
+
+2. Deploy your docker container into the EC2 instance 
