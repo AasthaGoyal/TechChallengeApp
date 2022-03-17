@@ -34,9 +34,15 @@ If you've found an issue with the application, the documentation, or anything el
 
 ## Deployement Steps - Tech Challenge 
 
-1. Run the Cloudformation command to create EC2 instance along with Postgress database
+1. Create a new SSH key that can be used for the EC2 instance
+
+ssh-keygen
+
+2. Run the Cloudformation command to create EC2 instance along with Postgress database
 
  aws cloudformation create-stack --stack-name go-app-server-2 --template-body file://template.yaml --parameters ParameterKey=InstanceType,ParameterValue=t2.micro ParameterKey=KeyName,ParameterValue=tech-aws ParameterKey=SubnetId1,ParameterValue=subnet-97243fde ParameterKey=VpcId,ParameterValue=vpc-2bb1b74c ParameterKey=RdsUsername,ParameterValue=goAdmin_User ParameterKey=RdsPass,ParameterValue=goAdminPassword --tags Key=Name,Value="WebServer"
+
+Here you would need to change the value of "subnet", "key" and "vpc" from your aws account. Key would be the SSH key that was generated in the first step. 
 
  2. Go to AWS > Cloudformation > Stacks to see the stack being generated and track progress. This would have generated an Ec2 instance with go and docker installed and an RDS Psotgress database
 
@@ -56,10 +62,14 @@ Example -
 docker build . -t servian/techchallengeapp:latest
 docker push
 
-5. Run a container on the EC2 instance by the command
+5. SSH into the EC2 instance using the SSH key:
+
+Eg - ssh -i "tech-aws.pem" ec2-user@ec2-13-211-127-70.ap-southeast-2.compute.amazonaws.com
+
+6. Run a container on the EC2 instance by the command
 
 docker run -d -p 3000:3000 servian/techchallengeapp:latest
 
-6. Open the Public IP address of the EC2 instance on 3000 port and the web app with the connected database should be visible. 
+7. Open the Public IP address of the EC2 instance on 3000 port and the web app with the connected database should be visible. 
 
 
