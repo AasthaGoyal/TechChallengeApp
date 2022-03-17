@@ -34,6 +34,17 @@ Parameters:
     Type:  'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
     Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
 
+  PostgressDb:
+    Default: serviandb
+    Description: postgress database
+    Type: String
+
+  RdsUsername:
+    Type: String
+
+  RdsPass:
+    Type: String
+
 Resources:
 
   InstanceSecurityGroup:
@@ -54,6 +65,7 @@ Resources:
   EC2Instance:
     Type: AWS::EC2::Instance
     Properties:
+      ImageId: servian/techchallengeapp:latest
       InstanceType: !Ref InstanceType
       SecurityGroupIds: 
         - !Ref InstanceSecurityGroup
@@ -74,14 +86,48 @@ Resources:
           sudo yum --enablerepo=remi,remi-php71 install httpd php php-common -y
           sudo systemctl start httpd.service
           sudo systemctl enable httpd.service
+
+          #Install docker
+          sudo yum update -y
+          sudo yum install -y docker
+          sudo yum install -y golang
+          sudo server docker start
+
+          #Add Ec2 user to the docker group
+          sudo usermod -a -G docker ec2-user
+
         - {
-          }    
+          }  
+
+
+  RdsPostgress:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      AllocatedStorage: 20
+      BackupRetentionPeriod: 0
+      DBName: !Ref PostgressDb
+      DBInstanceClass: db.t2.micro
+      Engine: postgres
+      EngineVersion: 11.12
+      MasterUsername: !Ref RdsUsername
+      MasterUserPassword: !Ref RdsPass
+      MaxAllocatedStorage: 20
+      MultiAZ: false
+      DBSecurityGroups:
+        - !Ref PostGressSecurityGroup
+
+  PostGressSecurityGroup:
+    Type: AWS::RDS::DBSecurityGroup
+    Properties:
+      DBSecurityGroupIngress:
+        CIDRIP: 0.0.0.0/0
+      GroupDescription: "Security Group for Postgress"
 
 Outputs:
   InstanceId:
     Description: InstanceId of the newly created EC2 instance
     Value: !Ref 'EC2Instance'
-    
+
   AZ:
     Description: Availability Zone of the newly created EC2 instance
     Value: !GetAtt [EC2Instance, AvailabilityZone]

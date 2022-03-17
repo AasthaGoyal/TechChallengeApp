@@ -34,8 +34,32 @@ If you've found an issue with the application, the documentation, or anything el
 
 ## Deployement Steps - Tech Challenge 
 
-1. Create a EC2 instance 
+1. Run the Cloudformation command to create EC2 instance along with Postgress database
 
- aws cloudformation create-stack --stack-name basic-web-server --template-body file://template.yaml --parameters ParameterKey=InstanceType,ParameterValue=t2.micro ParameterKey=KeyName,ParameterValue=tech-aws ParameterKey=SubnetId1,ParameterValue=subnet-97243fde ParameterKey=VpcId,ParameterValue=vpc-2bb1b74c --tags Key=Name,Value="WebServer"
+ aws cloudformation create-stack --stack-name go-app-server-2 --template-body file://template.yaml --parameters ParameterKey=InstanceType,ParameterValue=t2.micro ParameterKey=KeyName,ParameterValue=tech-aws ParameterKey=SubnetId1,ParameterValue=subnet-97243fde ParameterKey=VpcId,ParameterValue=vpc-2bb1b74c ParameterKey=RdsUsername,ParameterValue=goAdmin_User ParameterKey=RdsPass,ParameterValue=goAdminPassword --tags Key=Name,Value="WebServer"
 
-2. Deploy your docker container into the EC2 instance 
+ 2. Go to AWS > Cloudformation > Stacks to see the stack being generated and track progress. This would have generated an Ec2 instance with go and docker installed and an RDS Psotgress database
+
+ 3. To deploy the application on the EC2 instance, we need to SSH into the EC2 instance and deploy the app using Docker. But before that, we need to update the config.toml file with the details of the new RDS database created from the previous step. 
+
+Example - 
+
+"DbUser" = "goAdmin_User" (The username passed while creating the stack)
+"DbPassword" = "goAdminPassword" (The password passed while creating the stack)
+"DbName" = "serviandb" (The name of the database, curently hardcoded in template.yaml file )
+"DbPort" = "5432"  (By default database port in AWS RDS)
+"DbHost" = "br16qqrjxubgz32.cp4ciiixghw5.ap-southeast-2.rds.amazonaws.com" (The database endpoint from RDS instance)
+"ListenPort" = "3000"
+
+4. Create a new docker image with the new configuration file and push it to docker hub. 
+
+docker build . -t servian/techchallengeapp:latest
+docker push
+
+5. Run a container on the EC2 instance by the command
+
+docker run -d -p 3000:3000 servian/techchallengeapp:latest
+
+6. Open the Public IP address of the EC2 instance on 3000 port and the web app with the connected database should be visible. 
+
+
